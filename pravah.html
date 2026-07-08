@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pravah — 10 July 2026</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="#">Pravah</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#register">Register</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero / Event info -->
+<header class="py-5 bg-light">
+  <div class="container">
+    <h1 class="display-6">Pravah — 10 July 2026</h1>
+    <p class="lead">Join us for a day of sports and fun. Venue: (enter venue). Time: 9:00 AM onwards.</p>
+    <h5>Games</h5>
+    <ul>
+      <li>Relay Race</li>
+      <li>Throwball</li>
+      <li>Badminton</li>
+      <li>Chess</li>
+    </ul>
+    <a class="btn btn-primary" href="#register">Register Now</a>
+  </div>
+</header>
+
+<main class="container my-5">
+  <!-- About section -->
+  <section id="about" class="mb-5">
+    <h2>About the Event</h2>
+    <p>Pravah is a community sports meet on 10 July 2026 featuring team and individual games for all ages. Participants must register before attending.</p>
+  </section>
+
+  <!-- Register section -->
+  <section id="register" class="mb-5">
+    <h2>Register</h2>
+    <form id="regForm" class="row g-3 needs-validation" novalidate>
+      <div class="col-md-6">
+        <label for="name" class="form-label">Full name</label>
+        <input id="name" class="form-control" type="text" required />
+        <div class="invalid-feedback">Please enter your name.</div>
+      </div>
+      <div class="col-md-6">
+        <label for="game" class="form-label">Game</label>
+        <select id="game" class="form-select" required>
+          <option value="">Select a game</option>
+          <option>Relay Race</option>
+          <option>Throwball</option>
+          <option>Badminton</option>
+          <option>Chess</option>
+        </select>
+        <div class="invalid-feedback">Please choose a game.</div>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-success" type="submit">Submit Registration</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Participants table -->
+  <section id="participants">
+    <h2>Participants</h2>
+    <div class="table-responsive">
+      <table class="table table-striped" id="participantsTable">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Game</th><th>Removed</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(() => {
+  const STORAGE_KEY = 'pravah_participants_v1';
+  const form = document.getElementById('regForm');
+  const tbody = document.querySelector('#participantsTable tbody');
+
+  // load participants from localStorage
+  function load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  function save(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  function render() {
+    const list = load();
+    tbody.innerHTML = '';
+    list.forEach((p, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${escapeHtml(p.name)}</td>
+        <td>${escapeHtml(p.game)}</td>
+        <td><button class="btn btn-sm btn-outline-danger" data-idx="${i}">Remove</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // remove handler (event delegation)
+  tbody.addEventListener('click', e => {
+    if(e.target.matches('button[data-idx]')){
+      const idx = Number(e.target.dataset.idx);
+      const list = load();
+      list.splice(idx,1);
+      save(list);
+      render();
+    }
+  });
+
+  // form validation + submit
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (!form.checkValidity()) { form.classList.add('was-validated'); return; }
+    const name = document.getElementById('name').value.trim();
+    const game = document.getElementById('game').value;
+    const list = load();
+    list.push({ name, game, registeredAt: new Date().toISOString() });
+    save(list);
+    form.reset();
+    form.classList.remove('was-validated');
+    render();
+    // smooth-scroll to participants
+    document.getElementById('participants').scrollIntoView({behavior:'smooth'});
+  });
+
+  // initial render
+  render();
+})();
+</script>
